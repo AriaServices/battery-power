@@ -1,0 +1,3 @@
+# /etc/crond.d/battalert: crontab entries for Battery Alert
+
+5 * * * * * /usr/bin/battalert
