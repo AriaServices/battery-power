@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# run with sudo
+
+INSTDIR=/usr/share/battalert
+
+cp -r . $INSTDIR
+if test -f "/usr/bin/battalert"; then
+  rm -f /usr/bin/battalert
+fi
+ln -s $INSTDIR/battalert.py /usr/bin/battalert
+cp $INSTDIR/battalert.cron /etc/cron.d/battalert
