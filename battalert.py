@@ -7,6 +7,7 @@ Informs user of low battery and starts hibernate process before complete powerof
 
 License info
 With code from: https://www.geeksforgeeks.org/python-script-to-shows-laptop-battery-percentage/
+With code from: https://gist.github.com/zkneupper/8c1faed1296ff0eb8923e6f2ee6fb74c (computer_sleep)
 
 TODO:
 - add log to /var/log
@@ -40,6 +41,9 @@ import logging
 log = '/var/log/battalert.log'
 logging.basicConfig(filename=log, format="[%(asctime)s] %(name)s - %(module)s (%(process)d) - %(levelname)s - %(message)s", encoding='utf-8', level=logging.DEBUG)
 
+# import json for settings
+import json
+
 # python script showing battery details
 import psutil
 
@@ -52,6 +56,16 @@ def convertTime(seconds):
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
     return "{:02d}:{:02d}".format(hours, minutes)
+
+def computer_sleep():
+    if psutil.OSX:
+        os.system("pmset sleepnow")
+    elif psutil.LINUX:
+        os.system("systemctl suspend")
+    elif psutil.WINDOWS:
+        os.system("shutdown -h")
+    else:
+        logging.error("Operating system not supported (not OSX, Linux or Windows).")
 
 # icon files
 img_bat_low = os.path.abspath('bat_low.png')
@@ -85,6 +99,7 @@ if __name__ == "__main__":
             n2_alert.update(n2_appname, "Battery power is {}. Plug-in power or hibernate in 1 minute.".format(bat_percent), img_bat_low)
             # show alert
             n2_alert.show()
+            computer_sleep
         elif battery.power_plugged:
             logging.info("Battery is plugged in. No further action.")
         else:
