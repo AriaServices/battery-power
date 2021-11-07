@@ -1,3 +1,7 @@
 # /etc/crond.d/battalert: crontab entries for Battery Alert
 
-5 * * * * * /usr/bin/battalert
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user  command
+  5 * *   *   *   root  /usr/bin/battalert
