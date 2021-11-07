@@ -7,10 +7,12 @@ License info
 With code from: https://www.geeksforgeeks.org/python-script-to-shows-laptop-battery-percentage/
 
 TODO:
+- add log
 - add settings file
 - add cmd line params
 - add action on low bat
 - define low bat threshold
+- install script
 IMPROVEMENTS
 - define multiple actions for different threshold
 
