@@ -6,6 +6,14 @@ Description
 License info
 With code from: https://www.geeksforgeeks.org/python-script-to-shows-laptop-battery-percentage/
 
+TODO:
+- add settings file
+- add cmd line params
+- add action on low bat
+- define low bat threshold
+IMPROVEMENTS
+- define multiple actions for different threshold
+
 Requirements:
 - psutil:  sudo pip3 install psutil
 - notify2: sudo pip3 install notify2
@@ -62,8 +70,8 @@ if __name__ == "__main__":
 
         if battery.percent < 20.0 and not battery.power_plugged:
             n2_alert.update(n2_appname, "Battery power is {}. Plug-in power or hibernate in 1 minute.".format(bat_percent), img_bat_low)
-        else:
-            n2_alert.update(n2_appname, "Battery power is {}. Continue working.".format(bat_percent))
+        # else:
+        #     n2_alert.update(n2_appname, "Battery power is {}. Continue working.".format(bat_percent))
 
 
     # show alert
