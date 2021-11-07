@@ -4,7 +4,7 @@
 
 INSTDIR=/usr/share/battalert
 
-cp -r . $INSTDIR
+rsync --recursive --exclude=.git . $INSTDIR
 if test -f "/usr/bin/battalert"; then
   rm -f /usr/bin/battalert
 fi
