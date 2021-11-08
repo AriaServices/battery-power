@@ -14,6 +14,7 @@ TODO:
 - add settings file
 - add cmd line params
 - add action on low bat
+- define warning threshold
 - define low bat threshold
 - install script
 IMPROVEMENTS
@@ -96,7 +97,7 @@ if __name__ == "__main__":
         # logging.info("")
 
         if battery.percent < 20.0 and not battery.power_plugged:
-            n2_alert.update(n2_appname, "Battery power is {}. Plug-in power or hibernate in 1 minute.".format(bat_percent), img_bat_low)
+            n2_alert.update(n2_appname, "Battery power is {}. Going to sleep.".format(bat_percent), img_bat_low)
             # show alert
             n2_alert.show()
             computer_sleep
