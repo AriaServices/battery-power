@@ -17,8 +17,6 @@ TODO:
 - define warning threshold
 - define low bat threshold
 - alternate config file
-- install script
-- removal script
 IMPROVEMENTS
 - define multiple actions for different threshold
 
