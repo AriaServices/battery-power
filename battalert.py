@@ -16,7 +16,9 @@ TODO:
 - add action on low bat
 - define warning threshold
 - define low bat threshold
+- alternate config file
 - install script
+- removal script
 IMPROVEMENTS
 - define multiple actions for different threshold
 
@@ -39,17 +41,41 @@ import os
 
 # add logging
 import logging
-log = '/var/log/battalert.log'
-logging.basicConfig(filename=log, format="[%(asctime)s] %(name)s - %(module)s (%(process)d) - %(levelname)s - %(message)s", encoding='utf-8', level=logging.DEBUG)
+log_file     = '/var/log/battalert.log'
+log_encoding = 'utf-8'
+log_format   = "[%(asctime)s] %(name)s - %(module)s (%(process)d) - %(levelname)s - %(message)s"
+log_file_alt = "{}.log".format(os.path.splitext(os.path.basename(__file__))[0])
 
 # import json for settings
 import json
+cfg_file = os.path.abspath('./battalert.yml')
 
 # python script showing battery details
 import psutil
 
 # desktop notifications
 import notify2
+
+# load settings
+def load_config(cfg_file):
+    try:
+        with open(cfg_file, 'r') as f:
+            array = json.load(f)
+        print("Successfully loaded config file '{}'.".format(cfg_file))
+    except Exception as e:
+        print("Error: could not load config file '{}'. {}".format(cfg_file, e))
+        array = None
+    return array
+
+# save config to file
+def save_config(cfg_file, cfg):
+    try:
+        with open(cfg_file, 'w') as f:
+            json.dumps(cfg)
+        logging.info("Successfully saved config to file '{}'.".format(cfg_file))
+    except Exception as e:
+        logging.error("Error: could not save config to file '{}'. {}".format(cfg_file, e))
+
 
 # function returning time in hh:mm:ss
 def convertTime(seconds):
@@ -58,6 +84,7 @@ def convertTime(seconds):
     hours, minutes = divmod(minutes, 60)
     return "{:02d}:{:02d}".format(hours, minutes)
 
+# put computer to sleep depending on OS
 def computer_sleep():
     if psutil.OSX:
         os.system("pmset sleepnow")
@@ -82,7 +109,21 @@ notify2.init(n2_appname)
 n2_alert = notify2.Notification(n2_appname, "No battery available.", img_bat_low)
 
 if __name__ == "__main__":
+    # load config from file
+    cfg = load_config(cfg_file)
+    if cfg != None:
+        if cfg.log_file != '': log_file = cfg.log_file
+    else:
+        cfg['log_file'] = log_file
+
+    # init logging
+    try:
+        logging.basicConfig(filename=log_file, format=log_format, encoding=log_encoding, level=logging.DEBUG)
+    except PermissionError as e:
+        logging.basicConfig(filename=log_file_alt, format=log_format, encoding=log_encoding, level=logging.DEBUG)
     logging.info("Running {} v. {}.".format(n2_appname, __version__))
+    logging.info("Log file is '{}'.".format(log_file))
+
     if battery == None:
         n2_alert.update(n2_appname, "No battery available.")
         logging.info("There is no battery available on this system. No further action.")
@@ -106,4 +147,8 @@ if __name__ == "__main__":
         else:
             logging.info("Battery is discharging but enough remaining at {}. No further action.".format(bat_percent))
 
+    # save config
+    save_config(cfg_file, cfg)
+
+    # end of script
     logging.info("{} completed.".format(n2_appname))
