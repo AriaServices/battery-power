@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# run with sudo
+
+INSTDIR=/usr/share/battalert
+
+# remove installation dir
+rm -rf $INSTDIR
+
+# remove symlink
+rm -f /usr/bin/battalert
+
+# remove cron job
+rm $INSTDIR/battalert.cron /etc/cron.d/battalert
