@@ -6,12 +6,15 @@ INSTDIR=/usr/share/battalert
 
 # install application
 rsync --recursive --exclude=.git --exclude=*.log . $INSTDIR
+
+# create symlink for executable
 if test -f "/usr/bin/battalert"; then
   rm -f /usr/bin/battalert
 fi
-
-# create symlink for executable
 ln -s $INSTDIR/battalert.py /usr/bin/battalert
 
 # create symlink for cronjob
+if test -f "/etc/cron.d/battalert"; then
+  rm -f /etc/cron.d/battalert
+fi
 ln -s $INSTDIR/battalert.cron /etc/cron.d/battalert
