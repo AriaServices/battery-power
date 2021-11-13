@@ -39,20 +39,34 @@ import os
 
 # add logging
 import logging
-log_file     = '/var/log/battalert.log'
+basename     = os.path.splitext(os.path.basename(__file__))[0]
+log_level    = logging.DEBUG
+log_file     = '/var/log/{}.log'.format(basename)
+log_file_alt = "{}.log".format(basename)
 log_encoding = 'utf-8'
-log_format   = "[%(asctime)s] %(name)s - %(module)s (%(process)d) - %(levelname)s - %(message)s"
-log_file_alt = "{}.log".format(os.path.splitext(os.path.basename(__file__))[0])
+log_format   = "%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s"
 
 # import json for settings
 import json
-cfg_file = os.path.abspath('./battalert.yml')
+cfg_file = os.path.abspath('{}.cfg'.format(basename))
 
 # python script showing battery details
 import psutil
 
 # desktop notifications
 import notify2
+
+def init_logging(file=log_file, format=log_format, encoding=log_encoding, level=log_level):
+    # init logging
+    print("start init_logging()")
+    try:
+        logging.basicConfig(filename=file, format=format, encoding=encoding, level=log_level)
+    except PermissionError as e:
+        file = "{}.log".format(os.path.splitext(__file__)[0])
+        logging.basicConfig(filename=file, format=format, encoding=encoding, level=log_level)
+    logging.info("Running {} v. {}.".format(n2_appname, __version__))
+    logging.info("Log file is '{}'.".format(log_file))
+    print("end init_logging()")
 
 # load settings
 def load_config(cfg_file):
@@ -68,8 +82,8 @@ def load_config(cfg_file):
 # save config to file
 def save_config(cfg_file, cfg):
     try:
-        with open(cfg_file, 'w') as f:
-            json.dumps(cfg)
+        with open(cfg_file, 'w', encoding='utf-8') as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=4)
         logging.info("Successfully saved config to file '{}'.".format(cfg_file))
     except Exception as e:
         logging.error("Error: could not save config to file '{}'. {}".format(cfg_file, e))
@@ -110,17 +124,16 @@ if __name__ == "__main__":
     # load config from file
     cfg = load_config(cfg_file)
     if cfg != None:
-        if cfg.log_file != '': log_file = cfg.log_file
+        cfg_init_msg = "Existing configuration was loaded from '{}'.".format(cfg_file)
+        if cfg['log_file'] != '': log_file = cfg['log_file']
     else:
+        cfg_init_msg = "New configuration was created."
+        cfg = {}
         cfg['log_file'] = log_file
 
-    # init logging
-    try:
-        logging.basicConfig(filename=log_file, format=log_format, encoding=log_encoding, level=logging.DEBUG)
-    except PermissionError as e:
-        logging.basicConfig(filename=log_file_alt, format=log_format, encoding=log_encoding, level=logging.DEBUG)
-    logging.info("Running {} v. {}.".format(n2_appname, __version__))
-    logging.info("Log file is '{}'.".format(log_file))
+    init_logging()
+
+    logging.info("")
 
     if battery == None:
         n2_alert.update(n2_appname, "No battery available.")
