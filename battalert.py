@@ -105,7 +105,8 @@ def load_config(cfg_file):
     # check config parts
     if not 'logging' in cfg: cfg['logging']      = {}
     if not 'app'     in cfg: cfg['app']          = {}
-    if not 'icons'   in cfg: cfg['app']['icons'] = {}
+    if not 'icons'   in cfg['app']: cfg['app']['icons']   = {}
+    if not 'runtime' in cfg['app']: cfg['app']['runtime'] = {}
 
     # logging config
     if not 'log_console' in cfg['logging']: cfg['logging']['log_console'] = def_cfg['logging']['log_console']
@@ -187,10 +188,18 @@ if __name__ == "__main__":
         log("Battery left :       {}".format(bat_time), logging.DEBUG)
 
         if battery.percent < cfg['app']['app_warn_limit'] and not battery.power_plugged:
-            n2_alert.update(n2_appname, "Battery power is {}. Next warning in {} minutes.".format(bat_percent, cfg['app']['app_warn_freq']), cfg['app']['icons']['bat_half'])
-            n2_alert.show()
-        if battery.percent < cfg['app']['app_sleep_limit'] and not battery.power_plugged:
-            n2_alert.update(n2_appname, "Battery power is {}. Going to sleep.".format(bat_percent), cfg['app']['icons']['bat_low'])
+            if 'last_warning' in cfg['app']['runtime'] and (cfg['app']['runtime']['last_warning'] + cfg['app']['app_warn_freq'] * 60) < time.time():
+                msg = "Battery power is {}. Next warning in {} minutes.".format(bat_percent, cfg['app']['app_warn_freq'])
+                log(msg)
+                n2_alert.update(n2_appname, msg, cfg['app']['icons']['bat_half'])
+                n2_alert.show()
+                cfg['app']['runtime']['last_warning'] = time.time()
+            else:
+                log("Battery is discharging and below warning. Not enough time since last alert.", logging.DEBUG)
+        elif battery.percent < cfg['app']['app_sleep_limit'] and not battery.power_plugged:
+            msg = "Battery power is {}. Going to sleep.".format(bat_percent)
+            log(msg)
+            n2_alert.update(n2_appname, msg, cfg['app']['icons']['bat_low'])
             n2_alert.show()
             computer_sleep
         elif battery.power_plugged:
