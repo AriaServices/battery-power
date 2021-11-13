@@ -1,2 +1,15 @@
-config:
-  log_file: '/var/log/battalert.log'
+app:
+    app_action_delay: 15
+    app_sleep_limit: 5
+    app_warn_freq: 5
+    app_warn_limit: 72
+    icons:
+        bat_full: 728907_battery_full_charge_electricity_energy_icon.png
+        bat_half: 728908_battery_half_charge_charging_energy_icon.png
+        bat_low: 728909_energy_phone_mobile_battery_power_icon.png
+logging:
+    log_console: true
+    log_encoding: utf-8
+    log_file: /var/log/battalert.log
+    log_format: '%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s'
+    log_level: 10
