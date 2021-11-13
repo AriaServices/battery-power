@@ -32,25 +32,33 @@ __maintainer__ = 'Marcel Gerber'
 __email__ = 'info@ariaservices.ch'
 __status__ = 'dev'
 
-# defaults for app
-def_app_warn_limit  = 15 # battery percentage for warning
-def_app_warn_freq   =  5 # warn frequency in minutes
-def_app_sleep_limit =  5 # battery percentage for sleep action
-
-# for path.abspath
-import os
+# system libraries
+import os, time
 
 # add logging
 import logging
-basename         = os.path.splitext(os.path.basename(__file__))[0]
-log_console      = True # output log message to console
-def_log_file     = '/var/log/{}.log'.format(basename)
-log_file_alt     = "{}.log".format(basename)
-def_log_level    = logging.DEBUG
-def_log_encoding = 'utf-8'
-def_log_format   = "%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s"
 
-# import json for settings
+# default configuration
+def_cfg = {}
+
+# defaults for app
+def_cfg['app'] = {}
+def_cfg['app']['app_warn_freq']    =  5   # warn frequency in minutes
+def_cfg['app']['app_warn_limit']   = 15.0 # battery percentage for warning
+def_cfg['app']['app_sleep_limit']  =  5.0 # battery percentage for sleep action
+def_cfg['app']['app_action_delay'] = 15   # delay in seconds before doing action (computer_sleep)
+
+# defaults for logging
+basename = os.path.splitext(os.path.basename(__file__))[0]
+def_cfg['logging'] = {}
+def_cfg['logging']['log_console']  = True # output log message to console
+def_cfg['logging']['log_file']     = '/var/log/{}.log'.format(basename)
+def_cfg['logging']['log_file_alt'] = "{}.log".format(basename)
+def_cfg['logging']['log_level']    = logging.DEBUG
+def_cfg['logging']['log_encoding'] = 'utf-8'
+def_cfg['logging']['log_format']   = "%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s"
+
+# import for settings
 import yaml
 cfg_file = os.path.abspath('{}.yml'.format(basename))
 
@@ -62,12 +70,12 @@ import notify2
 
 # log message to console and file
 # do use before calling init_logging()
-def log(message, msg_level=logging.INFO, log_level=def_log_level):
+def log(message, msg_level=logging.INFO, log_level=logging.INFO):
     logging.log(msg_level, message)
     if msg_level >= log_level: print(message)
 
 # initialize logging facility
-def init_logging(file=def_log_file, format=def_log_format, encoding=def_log_encoding, level=def_log_level):
+def init_logging(file, format, encoding, level):
     # init logging
     try:
         logging.basicConfig(filename=file, format=format, encoding=encoding, level=level)
@@ -86,7 +94,40 @@ def load_config(cfg_file):
         print("Successfully loaded config file '{}'.".format(cfg_file))
     except Exception as e:
         print("Warning: could load config file '{}'. {}.".format(cfg_file, e))
-        cfg = None
+        cfg_init_msg = "New configuration was created."
+        cfg = {}
+
+    # check config parts
+    if not 'logging' in cfg: cfg['logging'] = {}
+    if not 'app'     in cfg: cfg['app']     = {}
+
+    if 'log_console' in cfg['logging']: log_console = cfg['logging']['log_console']
+    else: cfg['logging']['log_console'] = def_cfg['logging']['log_console']
+
+    if 'log_file' in cfg['logging']: log_file = cfg['logging']['log_file']
+    else: cfg['logging']['log_file'] = def_cfg['logging']['log_file']
+
+    if 'log_level' in cfg['logging']: log_level = cfg['logging']['log_level']
+    else: cfg['logging']['log_level'] = def_cfg['logging']['log_level']
+
+    if 'log_encoding' in cfg['logging']: log_encoding = cfg['logging']['log_encoding']
+    else: cfg['logging']['log_encoding'] = def_cfg['logging']['log_encoding']
+
+    if 'log_format' in cfg['logging']: log_format = cfg['logging']['log_format']
+    else: cfg['logging']['log_format'] = def_cfg['logging']['log_format']
+
+    if 'app_warn_limit' in cfg['app']: app_warn_limit = cfg['app']['app_warn_limit']
+    else: cfg['app']['app_warn_limit'] = def_cfg['app']['app_warn_limit']
+
+    if 'app_warn_freq' in cfg['app']: app_warn_freq = cfg['app']['app_warn_freq']
+    else: cfg['app']['app_warn_freq'] = def_cfg['app']['app_warn_freq']
+
+    if 'app_sleep_limit' in cfg['app']: app_sleep_limit = cfg['app']['app_sleep_limit']
+    else: cfg['app']['app_sleep_limit'] = def_cfg['app']['app_sleep_limit']
+
+    if 'app_action_delay' in cfg['app']: app_sleep_limit = cfg['app']['app_action_delay']
+    else: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
+
     return cfg
 
 # save config to file
@@ -107,6 +148,7 @@ def convertTime(seconds):
 
 # put computer to sleep depending on OS
 def computer_sleep():
+    time.sleep(cfg['app']['app_action_delay'])
     if psutil.OSX:
         os.system("pmset sleepnow")
     elif psutil.LINUX:
@@ -132,37 +174,7 @@ n2_alert = notify2.Notification(n2_appname, "No battery available.", img_bat_low
 if __name__ == "__main__":
     # load config from file
     cfg = load_config(cfg_file)
-    if cfg != None:
-        cfg_init_msg = "Existing configuration was loaded from '{}'.".format(cfg_file)
-    else:
-        cfg_init_msg = "New configuration was created."
-        cfg = {}
-
-    # check config parts
-    if not 'logging' in cfg: cfg['logging'] = {}
-    if not 'app'     in cfg: cfg['app']     = {}
-
-    if 'log_file'        in cfg['logging']: log_file        = cfg['logging']['log_file']
-    else: cfg['logging']['log_file']     = def_log_file
-
-    if 'log_level'       in cfg['logging']: log_level       = cfg['logging']['log_level']
-    else: cfg['logging']['log_level']     = def_log_level
-
-    if 'log_encoding'    in cfg['logging']: log_encoding    = cfg['logging']['log_encoding']
-    else: cfg['logging']['log_encoding']     = def_log_encoding
-
-    if 'log_format'      in cfg['logging']: log_format      = cfg['logging']['log_format']
-    else: cfg['logging']['log_format']     = def_log_format
-
-    if 'app_warn_limit'  in cfg['app']:     app_warn_limit  = cfg['app']['app_warn_limit']
-    else: cfg['app']['app_warn_limit']     = def_app_warn_limit
-
-    if 'app_warn_freq'   in cfg['app']:     app_warn_freq   = cfg['app']['app_warn_freq']
-    else: cfg['app']['app_warn_freq']     = def_app_warn_freq
-
-    if 'app_sleep_limit' in cfg['app']:     app_sleep_limit = cfg['app']['app_sleep_limit']
-    else: cfg['app']['app_sleep_limit']     = def_app_sleep_limit
-    init_logging()
+    init_logging(file=cfg['logging']['log_file'], format=cfg['logging']['log_format'], encoding=cfg['logging']['log_encoding'], level=cfg['logging']['log_level'])
 
     log("")
 
@@ -177,11 +189,12 @@ if __name__ == "__main__":
         log("Battery percentage : {}".format(bat_percent), logging.DEBUG)
         log("Power plugged in :   {}".format(battery.power_plugged), logging.DEBUG)
         log("Battery left :       {}".format(bat_time), logging.DEBUG)
-        # log("")
 
-        if battery.percent < 20.0 and not battery.power_plugged:
+        if battery.percent < cfg['app']['app_warn_limit'] and not battery.power_plugged:
+            n2_alert.update(n2_appname, "Battery power is {}. Next warning in {} minutes.".format(bat_percent, cfg['app']['app_warn_freq']), img_bat_low)
+            n2_alert.show()
+        if battery.percent < cfg['app']['app_sleep_limit'] and not battery.power_plugged:
             n2_alert.update(n2_appname, "Battery power is {}. Going to sleep.".format(bat_percent), img_bat_low)
-            # show alert
             n2_alert.show()
             computer_sleep
         elif battery.power_plugged:
