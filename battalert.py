@@ -123,9 +123,12 @@ def load_config(cfg_file):
     if not 'app_action_delay' in cfg['app']: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
 
     # icons
-    if not 'bat_low' in cfg['app']['icons']: cfg['app']['icons']['bat_low'] = os.path.abspath(def_cfg['app']['icons']['bat_low'])
-    if not 'bat_half' in cfg['app']['icons']: cfg['app']['icons']['bat_half'] = os.path.abspath(def_cfg['app']['icons']['bat_half'])
-    if not 'bat_full' in cfg['app']['icons']: cfg['app']['icons']['bat_full'] = os.path.abspath(def_cfg['app']['icons']['bat_full'])
+    if not 'bat_low' in cfg['app']['icons']: cfg['app']['icons']['bat_low'] = def_cfg['app']['icons']['bat_low']
+    if not 'bat_half' in cfg['app']['icons']: cfg['app']['icons']['bat_half'] = def_cfg['app']['icons']['bat_half']
+    if not 'bat_full' in cfg['app']['icons']: cfg['app']['icons']['bat_full'] = def_cfg['app']['icons']['bat_full']
+    cfg['app']['icons']['bat_low'] = os.path.abspath(cfg['app']['icons']['bat_low'])
+    cfg['app']['icons']['bat_half'] = os.path.abspath(cfg['app']['icons']['bat_half'])
+    cfg['app']['icons']['bat_full'] = os.path.abspath(cfg['app']['icons']['bat_full'])
 
     return cfg
 
