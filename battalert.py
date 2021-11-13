@@ -107,35 +107,19 @@ def load_config(cfg_file):
     if not 'app'     in cfg: cfg['app']          = {}
     if not 'icons'   in cfg: cfg['app']['icons'] = {}
 
-    if 'log_console' in cfg['logging']: log_console = cfg['logging']['log_console']
-    else: cfg['logging']['log_console'] = def_cfg['logging']['log_console']
+    # logging config
+    if not 'log_console' in cfg['logging']: cfg['logging']['log_console'] = def_cfg['logging']['log_console']
+    if not 'log_file' in cfg['logging']: cfg['logging']['log_file'] = def_cfg['logging']['log_file']
+    if not 'log_level' in cfg['logging']: cfg['logging']['log_level'] = def_cfg['logging']['log_level']
+    if not 'log_encoding' in cfg['logging']: cfg['logging']['log_encoding'] = def_cfg['logging']['log_encoding']
+    if not 'log_format' in cfg['logging']: cfg['logging']['log_format'] = def_cfg['logging']['log_format']
 
-    if 'log_file' in cfg['logging']: log_file = cfg['logging']['log_file']
-    else: cfg['logging']['log_file'] = def_cfg['logging']['log_file']
-
-    if 'log_level' in cfg['logging']: log_level = cfg['logging']['log_level']
-    else: cfg['logging']['log_level'] = def_cfg['logging']['log_level']
-
-    if 'log_encoding' in cfg['logging']: log_encoding = cfg['logging']['log_encoding']
-    else: cfg['logging']['log_encoding'] = def_cfg['logging']['log_encoding']
-
-    if 'log_format' in cfg['logging']: log_format = cfg['logging']['log_format']
-    else: cfg['logging']['log_format'] = def_cfg['logging']['log_format']
-
-    if 'app_warn_limit' in cfg['app']: app_warn_limit = cfg['app']['app_warn_limit']
-    else: cfg['app']['app_warn_limit'] = def_cfg['app']['app_warn_limit']
-
-    if 'app_warn_freq' in cfg['app']: app_warn_freq = cfg['app']['app_warn_freq']
-    else: cfg['app']['app_warn_freq'] = def_cfg['app']['app_warn_freq']
-
-    if 'app_sleep_limit' in cfg['app']: app_sleep_limit = cfg['app']['app_sleep_limit']
-    else: cfg['app']['app_sleep_limit'] = def_cfg['app']['app_sleep_limit']
-
-    if 'app_action_delay' in cfg['app']: app_sleep_limit = cfg['app']['app_action_delay']
-    else: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
-
-    if 'app_action_delay' in cfg['app']: app_sleep_limit = cfg['app']['app_action_delay']
-    else: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
+    # app config
+    if not 'app_warn_limit' in cfg['app']: cfg['app']['app_warn_limit'] = def_cfg['app']['app_warn_limit']
+    if not 'app_warn_freq' in cfg['app']: cfg['app']['app_warn_freq'] = def_cfg['app']['app_warn_freq']
+    if not 'app_sleep_limit' in cfg['app']: cfg['app']['app_sleep_limit'] = def_cfg['app']['app_sleep_limit']
+    if not 'app_action_delay' in cfg['app']: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
+    if not 'app_action_delay' in cfg['app']: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
 
     # icons
     if not 'bat_low' in cfg['app']['icons']: cfg['app']['icons']['bat_low'] = os.path.abspath(def_cfg['app']['icons']['bat_low'])
@@ -146,6 +130,9 @@ def load_config(cfg_file):
 
 # save config to file
 def save_config(cfg_file, cfg):
+    cfg['app']['icons']['bat_low'] = os.path.relpath(cfg['app']['icons']['bat_low'], app_path)
+    cfg['app']['icons']['bat_half'] = os.path.relpath(cfg['app']['icons']['bat_half'], app_path)
+    cfg['app']['icons']['bat_full'] = os.path.relpath(cfg['app']['icons']['bat_full'], app_path)
     try:
         with open(cfg_file, 'w', encoding='utf-8') as f:
             yaml.dump(cfg, f, indent=4)
