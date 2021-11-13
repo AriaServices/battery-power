@@ -40,6 +40,7 @@ import os
 # add logging
 import logging
 basename     = os.path.splitext(os.path.basename(__file__))[0]
+log_console  = True # output log message to console
 log_level    = logging.DEBUG
 log_file     = '/var/log/{}.log'.format(basename)
 log_file_alt = "{}.log".format(basename)
@@ -56,17 +57,21 @@ import psutil
 # desktop notifications
 import notify2
 
+# log message to console and file
+def log(message, msg_level=logging.INFO, log_level=log_level):
+    logging.log(msg_level, message)
+    if msg_level >= log_level: print(message)
+
 def init_logging(file=log_file, format=log_format, encoding=log_encoding, level=log_level):
     # init logging
-    print("start init_logging()")
     try:
         logging.basicConfig(filename=file, format=format, encoding=encoding, level=log_level)
     except PermissionError as e:
         file = "{}.log".format(os.path.splitext(__file__)[0])
         logging.basicConfig(filename=file, format=format, encoding=encoding, level=log_level)
-    logging.info("Running {} v. {}.".format(n2_appname, __version__))
-    logging.info("Log file is '{}'.".format(log_file))
-    print("end init_logging()")
+    log("-------------------------------------------------")
+    log("Running {} v. {}.".format(n2_appname, __version__))
+    log("Log file is '{}'.".format(log_file))
 
 # load settings
 def load_config(cfg_file):
@@ -84,9 +89,9 @@ def save_config(cfg_file, cfg):
     try:
         with open(cfg_file, 'w', encoding='utf-8') as f:
             yaml.dump(cfg, f, indent=4)
-        logging.info("Successfully saved config to file '{}'.".format(cfg_file))
+        log("Successfully saved config to file '{}'.".format(cfg_file))
     except Exception as e:
-        logging.error("Error: could not save config to file '{}'. {}.".format(cfg_file, e))
+        log("Error: could not save config to file '{}'. {}.".format(cfg_file, e), logging.ERROR)
 
 
 # function returning time in hh:mm:ss
@@ -105,7 +110,7 @@ def computer_sleep():
     elif psutil.WINDOWS:
         os.system("shutdown -h")
     else:
-        logging.error("Operating system not supported (not OSX, Linux or Windows).")
+        log("Operating system not supported (not OSX, Linux or Windows).", logging.ERROR)
 
 # icon files
 img_bat_low = os.path.abspath('bat_low.png')
@@ -133,20 +138,20 @@ if __name__ == "__main__":
 
     init_logging()
 
-    logging.info("")
+    log("")
 
     if battery == None:
         n2_alert.update(n2_appname, "No battery available.")
-        logging.info("There is no battery available on this system. No further action.")
+        log("There is no battery available on this system. No further action.")
     else:
         bat_percent = "{:.1f}%".format(battery.percent)
         bat_time = 'N/A'
         if battery.secsleft != -1:
             bat_time = convertTime(battery.secsleft)
-        logging.debug("Battery percentage : {}".format(bat_percent))
-        logging.debug("Power plugged in :   {}".format(battery.power_plugged))
-        logging.debug("Battery left :       {}".format(bat_time))
-        # logging.info("")
+        log("Battery percentage : {}".format(bat_percent), logging.DEBUG)
+        log("Power plugged in :   {}".format(battery.power_plugged), logging.DEBUG)
+        log("Battery left :       {}".format(bat_time), logging.DEBUG)
+        # log("")
 
         if battery.percent < 20.0 and not battery.power_plugged:
             n2_alert.update(n2_appname, "Battery power is {}. Going to sleep.".format(bat_percent), img_bat_low)
@@ -154,12 +159,12 @@ if __name__ == "__main__":
             n2_alert.show()
             computer_sleep
         elif battery.power_plugged:
-            logging.info("Battery is plugged in. No further action.")
+            log("Battery is plugged in. No further action.")
         else:
-            logging.info("Battery is discharging but enough remaining at {}. No further action.".format(bat_percent))
+            log("Battery is discharging but enough remaining at {}. No further action.".format(bat_percent))
 
     # save config
     save_config(cfg_file, cfg)
 
     # end of script
-    logging.info("{} completed.".format(n2_appname))
+    log("{} completed.".format(n2_appname))
