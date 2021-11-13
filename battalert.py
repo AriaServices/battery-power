@@ -47,8 +47,8 @@ log_encoding = 'utf-8'
 log_format   = "%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s"
 
 # import json for settings
-import json
-cfg_file = os.path.abspath('{}.cfg'.format(basename))
+import yaml
+cfg_file = os.path.abspath('{}.yml'.format(basename))
 
 # python script showing battery details
 import psutil
@@ -72,21 +72,21 @@ def init_logging(file=log_file, format=log_format, encoding=log_encoding, level=
 def load_config(cfg_file):
     try:
         with open(cfg_file, 'r') as f:
-            array = json.load(f)
+            cfg = yaml.safe_load(f)
         print("Successfully loaded config file '{}'.".format(cfg_file))
     except Exception as e:
-        print("Error: could not load config file '{}'. {}".format(cfg_file, e))
-        array = None
-    return array
+        print("Warning: could not load config file '{}'. {}.".format(cfg_file, e))
+        cfg = None
+    return cfg
 
 # save config to file
 def save_config(cfg_file, cfg):
     try:
         with open(cfg_file, 'w', encoding='utf-8') as f:
-            json.dump(cfg, f, ensure_ascii=False, indent=4)
+            yaml.dump(cfg, f, indent=4)
         logging.info("Successfully saved config to file '{}'.".format(cfg_file))
     except Exception as e:
-        logging.error("Error: could not save config to file '{}'. {}".format(cfg_file, e))
+        logging.error("Error: could not save config to file '{}'. {}.".format(cfg_file, e))
 
 
 # function returning time in hh:mm:ss
