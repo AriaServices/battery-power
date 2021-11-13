@@ -12,10 +12,8 @@ With code from: https://gist.github.com/zkneupper/8c1faed1296ff0eb8923e6f2ee6fb7
 TODO:
 - add cmd line params
 - add action on low bat
-- define warning threshold
-- define low bat threshold
-- alternate config file
 IMPROVEMENTS
+- alternate config file
 - define multiple actions for different threshold
 - write config only if changed
 - allow comments in config (and write back)
