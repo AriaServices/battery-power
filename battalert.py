@@ -43,13 +43,18 @@ def_cfg = {}
 
 # defaults for app
 def_cfg['app'] = {}
-def_cfg['app']['app_warn_freq']    =  5   # warn frequency in minutes
-def_cfg['app']['app_warn_limit']   = 15.0 # battery percentage for warning
-def_cfg['app']['app_sleep_limit']  =  5.0 # battery percentage for sleep action
-def_cfg['app']['app_action_delay'] = 15   # delay in seconds before doing action (computer_sleep)
+def_cfg['app']['icons'] = {}
+def_cfg['app']['app_warn_freq']     =  5   # warn frequency in minutes
+def_cfg['app']['app_warn_limit']    = 15.0 # battery percentage for warning
+def_cfg['app']['app_sleep_limit']   =  5.0 # battery percentage for sleep action
+def_cfg['app']['app_action_delay']  = 15   # delay in seconds before doing action (computer_sleep)
+def_cfg['app']['icons']['bat_low']  = '728909_energy_phone_mobile_battery_power_icon.png'
+def_cfg['app']['icons']['bat_half'] = '728908_battery_half_charge_charging_energy_icon.png'
+def_cfg['app']['icons']['bat_full'] = '728907_battery_full_charge_electricity_energy_icon.png'
 
 # defaults for logging
 basename = os.path.splitext(os.path.basename(__file__))[0]
+app_path = os.path.abspath(os.path.split(__file__)[0])
 def_cfg['logging'] = {}
 def_cfg['logging']['log_console']  = True # output log message to console
 def_cfg['logging']['log_file']     = '/var/log/{}.log'.format(basename)
@@ -98,8 +103,9 @@ def load_config(cfg_file):
         cfg = {}
 
     # check config parts
-    if not 'logging' in cfg: cfg['logging'] = {}
-    if not 'app'     in cfg: cfg['app']     = {}
+    if not 'logging' in cfg: cfg['logging']      = {}
+    if not 'app'     in cfg: cfg['app']          = {}
+    if not 'icons'   in cfg: cfg['app']['icons'] = {}
 
     if 'log_console' in cfg['logging']: log_console = cfg['logging']['log_console']
     else: cfg['logging']['log_console'] = def_cfg['logging']['log_console']
@@ -127,6 +133,14 @@ def load_config(cfg_file):
 
     if 'app_action_delay' in cfg['app']: app_sleep_limit = cfg['app']['app_action_delay']
     else: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
+
+    if 'app_action_delay' in cfg['app']: app_sleep_limit = cfg['app']['app_action_delay']
+    else: cfg['app']['app_action_delay'] = def_cfg['app']['app_action_delay']
+
+    # icons
+    if not 'bat_low' in cfg['app']['icons']: cfg['app']['icons']['bat_low'] = os.path.abspath(def_cfg['app']['icons']['bat_low'])
+    if not 'bat_half' in cfg['app']['icons']: cfg['app']['icons']['bat_half'] = os.path.abspath(def_cfg['app']['icons']['bat_half'])
+    if not 'bat_full' in cfg['app']['icons']: cfg['app']['icons']['bat_full'] = os.path.abspath(def_cfg['app']['icons']['bat_full'])
 
     return cfg
 
@@ -158,25 +172,20 @@ def computer_sleep():
     else:
         log("Operating system supported (not OSX, Linux or Windows).", logging.ERROR)
 
-# icon files
-img_bat_low = os.path.abspath('bat_low.png')
-
 # notify2 vars
 n2_appname = 'Battery Alert'
 
 # get battery infos
 battery = psutil.sensors_battery()
 
-# prepare notification
-notify2.init(n2_appname)
-n2_alert = notify2.Notification(n2_appname, "No battery available.", img_bat_low)
-
 if __name__ == "__main__":
     # load config from file
     cfg = load_config(cfg_file)
     init_logging(file=cfg['logging']['log_file'], format=cfg['logging']['log_format'], encoding=cfg['logging']['log_encoding'], level=cfg['logging']['log_level'])
 
-    log("")
+    # initialize notifications
+    notify2.init(n2_appname)
+    n2_alert = notify2.Notification(n2_appname, "No battery available.", cfg['app']['icons']['bat_low'])
 
     if battery == None:
         n2_alert.update(n2_appname, "No battery available.")
@@ -191,10 +200,10 @@ if __name__ == "__main__":
         log("Battery left :       {}".format(bat_time), logging.DEBUG)
 
         if battery.percent < cfg['app']['app_warn_limit'] and not battery.power_plugged:
-            n2_alert.update(n2_appname, "Battery power is {}. Next warning in {} minutes.".format(bat_percent, cfg['app']['app_warn_freq']), img_bat_low)
+            n2_alert.update(n2_appname, "Battery power is {}. Next warning in {} minutes.".format(bat_percent, cfg['app']['app_warn_freq']), cfg['app']['icons']['bat_half'])
             n2_alert.show()
         if battery.percent < cfg['app']['app_sleep_limit'] and not battery.power_plugged:
-            n2_alert.update(n2_appname, "Battery power is {}. Going to sleep.".format(bat_percent), img_bat_low)
+            n2_alert.update(n2_appname, "Battery power is {}. Going to sleep.".format(bat_percent), cfg['app']['icons']['bat_low'])
             n2_alert.show()
             computer_sleep
         elif battery.power_plugged:
