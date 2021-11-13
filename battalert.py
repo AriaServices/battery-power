@@ -17,6 +17,8 @@ TODO:
 - alternate config file
 IMPROVEMENTS
 - define multiple actions for different threshold
+- write config only if changed
+- allow comments in config (and write back)
 
 Requirements:
 - psutil:  sudo pip3 install psutil
