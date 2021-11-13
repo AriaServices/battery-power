@@ -7,8 +7,11 @@ INSTDIR=/usr/share/battalert
 # remove installation dir
 rm -rf $INSTDIR
 
-# remove symlink
+# remove bin symlink
 rm -f /usr/bin/battalert
 
+# remove config symlink
+rm -f /etc/battalert
+
 # remove cron job
-rm $INSTDIR/battalert.cron /etc/cron.d/battalert
+rm -f /etc/cron.d/battalert

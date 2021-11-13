@@ -13,6 +13,12 @@ if test -f "/usr/bin/battalert"; then
 fi
 ln -s $INSTDIR/battalert.py /usr/bin/battalert
 
+# create symlink for config
+if test -f "/etc/battalert"; then
+  rm -f /etc/battalert
+fi
+ln -s $INSTDIR/battalert.yml /etc/battalert
+
 # create symlink for cronjob
 if test -f "/etc/cron.d/battalert"; then
   rm -f /etc/cron.d/battalert
