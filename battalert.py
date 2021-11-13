@@ -10,6 +10,7 @@ With code from: https://www.geeksforgeeks.org/python-script-to-shows-laptop-batt
 With code from: https://gist.github.com/zkneupper/8c1faed1296ff0eb8923e6f2ee6fb74c (computer_sleep)
 
 TODO:
+- allow root to use libnotify2
 - add cmd line params
 - add action on low bat
 IMPROVEMENTS
@@ -175,11 +176,16 @@ if __name__ == "__main__":
     init_logging(file=cfg['logging']['log_file'], format=cfg['logging']['log_format'], encoding=cfg['logging']['log_encoding'], level=cfg['logging']['log_level'])
 
     # initialize notifications
-    notify2.init(n2_appname)
-    n2_alert = notify2.Notification(n2_appname, "No battery available.", cfg['app']['icons']['bat_low'])
+    try:
+        notify2.init(n2_appname)
+        n2_alert = notify2.Notification(n2_appname, "No battery available.", cfg['app']['icons']['bat_low'])
+        libnotify_status = True
+    except Exception as e:
+        libnotify_status = False
+        log("Error starting notifications. {}.".format(e))
 
     if battery == None:
-        n2_alert.update(n2_appname, "No battery available.")
+        if libnotify_status: n2_alert.update(n2_appname, "No battery available.")
         log("There is no battery available on this system. No further action.")
     else:
         bat_percent = "{:.1f}%".format(battery.percent)
@@ -194,16 +200,18 @@ if __name__ == "__main__":
             if 'last_warning' in cfg['app']['runtime'] and (cfg['app']['runtime']['last_warning'] + cfg['app']['app_warn_freq'] * 60) < time.time():
                 msg = "Battery power is {}. Next warning in {} minutes.".format(bat_percent, cfg['app']['app_warn_freq'])
                 log(msg)
-                n2_alert.update(n2_appname, msg, cfg['app']['icons']['bat_half'])
-                n2_alert.show()
+                if libnotify_status:
+                    n2_alert.update(n2_appname, msg, cfg['app']['icons']['bat_half'])
+                    n2_alert.show()
                 cfg['app']['runtime']['last_warning'] = time.time()
             else:
                 log("Battery is discharging and below warning. Not enough time since last alert.", logging.DEBUG)
         elif battery.percent < cfg['app']['app_sleep_limit'] and not battery.power_plugged:
             msg = "Battery power is {}. Going to sleep.".format(bat_percent)
             log(msg)
-            n2_alert.update(n2_appname, msg, cfg['app']['icons']['bat_low'])
-            n2_alert.show()
+            if libnotify_status:
+                n2_alert.update(n2_appname, msg, cfg['app']['icons']['bat_low'])
+                n2_alert.show()
             computer_sleep
         elif battery.power_plugged:
             log("Battery is plugged in. No further action.")
