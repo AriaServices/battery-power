@@ -10,8 +10,6 @@ With code from: https://www.geeksforgeeks.org/python-script-to-shows-laptop-batt
 With code from: https://gist.github.com/zkneupper/8c1faed1296ff0eb8923e6f2ee6fb74c (computer_sleep)
 
 TODO:
-- add log to /var/log
-- add settings file
 - add cmd line params
 - add action on low bat
 - define warning threshold
@@ -34,18 +32,23 @@ __maintainer__ = 'Marcel Gerber'
 __email__ = 'info@ariaservices.ch'
 __status__ = 'dev'
 
+# defaults for app
+def_app_warn_limit  = 15 # battery percentage for warning
+def_app_warn_freq   =  5 # warn frequency in minutes
+def_app_sleep_limit =  5 # battery percentage for sleep action
+
 # for path.abspath
 import os
 
 # add logging
 import logging
-basename     = os.path.splitext(os.path.basename(__file__))[0]
-log_console  = True # output log message to console
-log_level    = logging.DEBUG
-log_file     = '/var/log/{}.log'.format(basename)
-log_file_alt = "{}.log".format(basename)
-log_encoding = 'utf-8'
-log_format   = "%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s"
+basename         = os.path.splitext(os.path.basename(__file__))[0]
+log_console      = True # output log message to console
+def_log_file     = '/var/log/{}.log'.format(basename)
+log_file_alt     = "{}.log".format(basename)
+def_log_level    = logging.DEBUG
+def_log_encoding = 'utf-8'
+def_log_format   = "%(asctime)s - %(module)s - %(process)d - %(levelname)s - %(message)s"
 
 # import json for settings
 import yaml
@@ -58,20 +61,22 @@ import psutil
 import notify2
 
 # log message to console and file
-def log(message, msg_level=logging.INFO, log_level=log_level):
+# do use before calling init_logging()
+def log(message, msg_level=logging.INFO, log_level=def_log_level):
     logging.log(msg_level, message)
     if msg_level >= log_level: print(message)
 
-def init_logging(file=log_file, format=log_format, encoding=log_encoding, level=log_level):
+# initialize logging facility
+def init_logging(file=def_log_file, format=def_log_format, encoding=def_log_encoding, level=def_log_level):
     # init logging
     try:
-        logging.basicConfig(filename=file, format=format, encoding=encoding, level=log_level)
+        logging.basicConfig(filename=file, format=format, encoding=encoding, level=level)
     except PermissionError as e:
         file = "{}.log".format(os.path.splitext(__file__)[0])
-        logging.basicConfig(filename=file, format=format, encoding=encoding, level=log_level)
+        logging.basicConfig(filename=file, format=format, encoding=encoding, level=level)
     log("-------------------------------------------------")
     log("Running {} v. {}.".format(n2_appname, __version__))
-    log("Log file is '{}'.".format(log_file))
+    log("Log file is '{}'.".format(file))
 
 # load settings
 def load_config(cfg_file):
@@ -80,7 +85,7 @@ def load_config(cfg_file):
             cfg = yaml.safe_load(f)
         print("Successfully loaded config file '{}'.".format(cfg_file))
     except Exception as e:
-        print("Warning: could not load config file '{}'. {}.".format(cfg_file, e))
+        print("Warning: could load config file '{}'. {}.".format(cfg_file, e))
         cfg = None
     return cfg
 
@@ -91,8 +96,7 @@ def save_config(cfg_file, cfg):
             yaml.dump(cfg, f, indent=4)
         log("Successfully saved config to file '{}'.".format(cfg_file))
     except Exception as e:
-        log("Error: could not save config to file '{}'. {}.".format(cfg_file, e), logging.ERROR)
-
+        log("Error: could save config to file '{}'. {}.".format(cfg_file, e), logging.ERROR)
 
 # function returning time in hh:mm:ss
 def convertTime(seconds):
@@ -110,7 +114,7 @@ def computer_sleep():
     elif psutil.WINDOWS:
         os.system("shutdown -h")
     else:
-        log("Operating system not supported (not OSX, Linux or Windows).", logging.ERROR)
+        log("Operating system supported (not OSX, Linux or Windows).", logging.ERROR)
 
 # icon files
 img_bat_low = os.path.abspath('bat_low.png')
@@ -130,12 +134,34 @@ if __name__ == "__main__":
     cfg = load_config(cfg_file)
     if cfg != None:
         cfg_init_msg = "Existing configuration was loaded from '{}'.".format(cfg_file)
-        if cfg['log_file'] != '': log_file = cfg['log_file']
     else:
         cfg_init_msg = "New configuration was created."
         cfg = {}
-        cfg['log_file'] = log_file
 
+    # check config parts
+    if not 'logging' in cfg: cfg['logging'] = {}
+    if not 'app'     in cfg: cfg['app']     = {}
+
+    if 'log_file'        in cfg['logging']: log_file        = cfg['logging']['log_file']
+    else: cfg['logging']['log_file']     = def_log_file
+
+    if 'log_level'       in cfg['logging']: log_level       = cfg['logging']['log_level']
+    else: cfg['logging']['log_level']     = def_log_level
+
+    if 'log_encoding'    in cfg['logging']: log_encoding    = cfg['logging']['log_encoding']
+    else: cfg['logging']['log_encoding']     = def_log_encoding
+
+    if 'log_format'      in cfg['logging']: log_format      = cfg['logging']['log_format']
+    else: cfg['logging']['log_format']     = def_log_format
+
+    if 'app_warn_limit'  in cfg['app']:     app_warn_limit  = cfg['app']['app_warn_limit']
+    else: cfg['app']['app_warn_limit']     = def_app_warn_limit
+
+    if 'app_warn_freq'   in cfg['app']:     app_warn_freq   = cfg['app']['app_warn_freq']
+    else: cfg['app']['app_warn_freq']     = def_app_warn_freq
+
+    if 'app_sleep_limit' in cfg['app']:     app_sleep_limit = cfg['app']['app_sleep_limit']
+    else: cfg['app']['app_sleep_limit']     = def_app_sleep_limit
     init_logging()
 
     log("")
