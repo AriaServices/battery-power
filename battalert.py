@@ -66,7 +66,7 @@ def_cfg['logging']['log_format']   = "%(asctime)s - %(module)s - %(process)d - %
 
 # import for settings
 import yaml
-cfg_file = '/etc/{}.yml'.format(basename)
+cfg_file = '{}.yml'.format(basename)
 
 # python script showing battery details
 import psutil
