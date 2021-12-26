@@ -5,22 +5,24 @@
 INSTDIR=/usr/share/battalert
 
 # install application
-rsync --recursive --exclude=.git --exclude=*.log . $INSTDIR
+sudo rsync --recursive --exclude=.git --exclude=*.log . $INSTDIR
+sudo chgrp -R users $INSTDIR
+sudo chmod -R g+w $INSTDIR
 
 # create symlink for executable
 if test -f "/usr/bin/battalert"; then
-  rm -f /usr/bin/battalert
+  sudo rm -f /usr/bin/battalert
 fi
-ln -s $INSTDIR/battalert.py /usr/bin/battalert
+sudo ln -s $INSTDIR/battalert.py /usr/bin/battalert
 
 # create symlink for config
-if test -f "/etc/battalert"; then
-  rm -f /etc/battalert
-fi
-ln -s $INSTDIR/battalert.yml /etc/battalert
+# if test -f "/etc/battalert"; then
+#   rm -f /etc/battalert
+# fi
+# ln -s $INSTDIR/battalert.yml /etc/battalert
 
 # create symlink for cronjob
-if test -f "/etc/cron.d/battalert"; then
-  rm -f /etc/cron.d/battalert
-fi
-ln -s $INSTDIR/battalert.cron /etc/cron.d/battalert
+# if test -f "/etc/cron.d/battalert"; then
+#   rm -f /etc/cron.d/battalert
+# fi
+# ln -s $INSTDIR/battalert.cron /etc/cron.d/battalert
